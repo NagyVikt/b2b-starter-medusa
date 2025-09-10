@@ -43,6 +43,7 @@ export const getRegion = async (
   countryCode: string
 ): Promise<HttpTypes.StoreRegion | null> => {
   try {
+    const defaultCountry = (process.env.NEXT_PUBLIC_DEFAULT_REGION || "hu").toLowerCase()
     if (regionMap.has(countryCode)) {
       return regionMap.get(countryCode) ?? null
     }
@@ -59,9 +60,18 @@ export const getRegion = async (
       })
     })
 
-    const region = countryCode
-      ? regionMap.get(countryCode)
-      : regionMap.get("us")
+    let region: HttpTypes.StoreRegion | undefined | null = null
+    if (countryCode) {
+      region = regionMap.get(countryCode)
+    }
+    if (!region && defaultCountry) {
+      region = regionMap.get(defaultCountry)
+    }
+    if (!region) {
+      // Fallback to first available region
+      const first = Array.from(regionMap.values())[0]
+      region = first ?? null
+    }
 
     return region ?? null
   } catch (e: any) {
