@@ -142,6 +142,22 @@ const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
         {isOpen ? (
           <div>
             <Divider />
+            {/* Quick link to edit shipping while billing is open */}
+            <div className="flex justify-end py-2">
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    pathname + "?" + createQueryString("step", "shipping-address"),
+                    { scroll: false }
+                  )
+                }
+                className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover underline"
+              >
+                {/* This handler will be replaced to go to shipping step */}
+                Szállítási cím szerkesztése
+              </button>
+            </div>
             <form action={handleSubmit}>
               <div className="py-2">
                 <BillingAddressForm cart={cart} />
@@ -151,7 +167,7 @@ const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
                   className="mt-6"
                   data-testid="submit-address-button"
                 >
-                  Next step
+                  Következő lépés
                 </SubmitButton>
                 <ErrorMessage
                   error={error}

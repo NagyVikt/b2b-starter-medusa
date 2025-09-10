@@ -11,6 +11,7 @@ import { RequestQuotePrompt } from "@/modules/quotes/components/request-quote-pr
 import SkeletonAccountButton from "@/modules/skeletons/components/skeleton-account-button"
 import SkeletonCartButton from "@/modules/skeletons/components/skeleton-cart-button"
 import SkeletonMegaMenu from "@/modules/skeletons/components/skeleton-mega-menu"
+import SearchBar from "@/modules/layout/components/search-bar"
 import { Suspense } from "react"
 
 export async function NavigationHeader() {
@@ -51,15 +52,7 @@ export async function NavigationHeader() {
               </nav>
           </div>
           <div className="flex justify-end items-center gap-2">
-            <div className="relative mr-2 hidden small:inline-flex">
-              <input
-                disabled
-                type="text"
-                placeholder="Termékek keresése"
-                className="bg-gray-100 text-zinc-900 px-4 py-2 rounded-full pr-10 shadow-borders-base hidden small:inline-block hover:cursor-not-allowed"
-                title="A termékkereséshez telepítsen kereső szolgáltatást"
-              />
-            </div>
+            <SearchBar />
 
             <div className="h-4 w-px bg-neutral-300" />
 

@@ -25,6 +25,7 @@ export default async function PaginatedProducts({
   productsIds,
   countryCode,
   customer,
+  searchQuery,
 }: {
   sortBy?: SortOptions
   page: number
@@ -33,6 +34,7 @@ export default async function PaginatedProducts({
   productsIds?: string[]
   countryCode: string
   customer?: B2BCustomer | null
+  searchQuery?: string
 }) {
   const queryParams: PaginatedProductsParams = {
     limit: 12,
@@ -46,6 +48,11 @@ export default async function PaginatedProducts({
 
   if (productsIds) {
     queryParams["id"] = productsIds
+  }
+
+  if (searchQuery && searchQuery.trim().length > 0) {
+    // Medusa supports `q` for free-text search
+    ;(queryParams as any)["q"] = searchQuery.trim()
   }
 
   if (sortBy === "created_at") {
