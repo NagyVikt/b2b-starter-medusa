@@ -122,7 +122,16 @@ export async function middleware(request: NextRequest) {
   // Set a cache id to invalidate the cache for this instance only
   const cacheId = await setCacheId(request, response)
 
-  const regionMap = await getRegionMap(cacheId)
+  // Build region map; fail safe in dev
+  let regionMap: Map<string, HttpTypes.StoreRegion> | null = null
+  try {
+    regionMap = await getRegionMap(cacheId)
+  } catch (e) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("middleware: getRegionMap failed; skipping redirects.")
+    }
+    return NextResponse.next()
+  }
 
   const countryCode = regionMap && (await getCountryCode(request, regionMap))
 
@@ -139,8 +148,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const redirectPath =
-    request.nextUrl.pathname === "/" ? "" : request.nextUrl.pathname
+  // Normalize path: if it starts with an unknown 2-letter code, strip it
+  const pathname = request.nextUrl.pathname
+  const seg = pathname.split("/")[1] || ""
+  const hasUnknownCountrySeg = seg && seg.length === 2 && !regionMap?.has(seg)
+  const pathWithoutCountry = hasUnknownCountrySeg
+    ? pathname.replace(new RegExp(`^/${seg}`), "") || "/"
+    : pathname
+
+  const redirectPath = pathWithoutCountry === "/" ? "" : pathWithoutCountry
 
   const queryString = request.nextUrl.search ? request.nextUrl.search : ""
 

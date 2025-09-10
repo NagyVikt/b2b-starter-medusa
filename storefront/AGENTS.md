@@ -24,5 +24,5 @@ Process Flow (high level)
 
 Docs
 - Backend API and env: see `doc/backend.md`.
+- Medusa v2 implementation guide: see `doc/backend-v2.md`.
 - Component map and responsibilities: see `doc/componenets.md`.
-
