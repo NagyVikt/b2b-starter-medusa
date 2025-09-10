@@ -89,7 +89,7 @@ const ShippingAddressForm = ({
       {customer && (addressesInRegion?.length || 0) > 0 && (
         <Container className="mb-6 flex flex-col gap-y-4 p-5">
           <p className="text-small-regular">
-            {`Hi ${customer.first_name}, do you want to use one of your saved addresses?`}
+            {`Szia ${customer.first_name}! Szeretnéd valamelyik elmentett címedet használni?`}
           </p>
           <AddressSelect
             addresses={customer.addresses}
@@ -102,45 +102,51 @@ const ShippingAddressForm = ({
           />
         </Container>
       )}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Simplified, clean card without heavy shadows */}
+      <div className="rounded-xl bg-white border border-neutral-200 p-4 grid grid-cols-2 gap-4">
         <Input
-          label="First name"
+          label="Keresztnév"
           name="shipping_address.first_name"
           autoComplete="given-name"
           value={formData["shipping_address.first_name"]}
           onChange={handleChange}
           required
+          className="h-12 text-base px-5 pt-3.5 pb-3"
           data-testid="shipping-first-name-input"
         />
         <Input
-          label="Last name"
+          label="Vezetéknév"
           name="shipping_address.last_name"
           autoComplete="family-name"
           value={formData["shipping_address.last_name"]}
           onChange={handleChange}
           required
+          className="h-12 text-base px-5 pt-3.5 pb-3"
           data-testid="shipping-last-name-input"
         />
         <Input
-          label="Phone"
+          label="Telefonszám"
           name="shipping_address.phone"
+          type="tel"
           autoComplete="tel"
           value={formData["shipping_address.phone"]}
           onChange={handleChange}
           required
+          className="h-12 text-base px-5 pt-3.5 pb-3"
           data-testid="shipping-phone-input"
         />
         <Input
-          label="Company name"
+          label="Cég neve"
           name="shipping_address.company"
           value={formData["shipping_address.company"]}
           onChange={handleChange}
           autoComplete="organization"
           data-testid="shipping-company-input"
           colSpan={2}
+          className="h-12 text-base px-5 pt-3.5 pb-3"
         />
         <Input
-          label="Address"
+          label="Cím"
           name="shipping_address.address_1"
           autoComplete="address-line1"
           value={formData["shipping_address.address_1"]}
@@ -148,9 +154,10 @@ const ShippingAddressForm = ({
           required
           data-testid="shipping-address-input"
           colSpan={2}
+          className="h-12 text-base px-5 pt-3.5 pb-3"
         />
         <Input
-          label="Postal code"
+          label="Irányítószám"
           name="shipping_address.postal_code"
           autoComplete="postal-code"
           value={formData["shipping_address.postal_code"]}
@@ -158,27 +165,30 @@ const ShippingAddressForm = ({
           required
           data-testid="shipping-postal-code-input"
           colSpan={2}
+          className="h-12 text-base px-5 pt-3.5 pb-3"
         />
         <div className="grid small:grid-cols-3 grid-cols-2 gap-4 col-span-2">
           <Input
-            label="City"
+            label="Város"
             name="shipping_address.city"
             autoComplete="address-level2"
             value={formData["shipping_address.city"]}
             onChange={handleChange}
             required
+            className="h-12 text-base px-5 pt-3.5 pb-3"
             data-testid="shipping-city-input"
           />
           <Input
-            label="Province"
+            label="Megye"
             name="shipping_address.province"
             autoComplete="address-level1"
             value={formData["shipping_address.province"]}
             onChange={handleChange}
+            className="h-12 text-base px-5 pt-3.5 pb-3"
             data-testid="shipping-province-input"
           />
           <CountrySelect
-            className="col-span-2"
+            className="col-span-2 h-12 text-base"
             name="shipping_address.country_code"
             autoComplete="country"
             region={cart?.region}

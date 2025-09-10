@@ -4,7 +4,6 @@ import { useCart } from "@/lib/context/cart-context"
 import { checkSpendingLimit } from "@/lib/util/check-spending-limit"
 import ApprovalStatusBanner from "@/modules/cart/components/approval-status-banner"
 import EmptyCartMessage from "@/modules/cart/components/empty-cart-message"
-import SignInPrompt from "@/modules/cart/components/sign-in-prompt"
 import ItemsTemplate from "@/modules/cart/templates/items"
 import Summary from "@/modules/cart/templates/summary"
 import { B2BCustomer } from "@/types/global"
@@ -37,7 +36,7 @@ const CartTemplate = ({ customer }: { customer: B2BCustomer | null }) => {
               </div>
               <div className="grid grid-cols-1 small:grid-cols-[1fr_360px] gap-2">
                 <div className="flex flex-col gap-y-2">
-                  {!customer && <SignInPrompt />}
+                  {/* Guest checkout: no sign-in prompt on cart */}
                   {cart?.approvals && cart.approvals.length > 0 && (
                     <ApprovalStatusBanner cart={cart} />
                   )}

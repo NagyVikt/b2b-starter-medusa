@@ -10,9 +10,9 @@ import Divider from "@/modules/common/components/divider"
 import { B2BCart } from "@/types"
 import { ApprovalStatusType } from "@/types/approval"
 import { CheckCircleSolid } from "@medusajs/icons"
-import { clx, Container, Heading, Text, useToggleState } from "@medusajs/ui"
+import { clx, Container, Heading, Text } from "@medusajs/ui"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
   const searchParams = useSearchParams()
@@ -25,11 +25,13 @@ const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
 
   const cartApprovalStatus = cart?.approval_status?.status
 
-  const { state: sameAsBilling, toggle: toggleSameAsBilling } = useToggleState(
-    cart?.shipping_address && cart?.billing_address
-      ? compareAddresses(cart?.shipping_address, cart?.billing_address)
-      : false
-  )
+  const [sameAsBilling, setSameAsBilling] = useState<boolean>(() => {
+    if (cart?.shipping_address) {
+      if (!cart?.billing_address?.address_1) return true
+      return compareAddresses(cart.shipping_address, cart.billing_address)
+    }
+    return false
+  })
 
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -47,15 +49,40 @@ const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
   }
 
   const handleToggleSameAsBilling = async () => {
-    toggleSameAsBilling()
-    sameAsBilling && handleEdit()
-
-    if (!sameAsBilling && cart?.shipping_address) {
+    const next = !sameAsBilling
+    setSameAsBilling(next)
+    if (!next) {
+      // Unchecked: allow editing billing address
+      handleEdit()
+      return
+    }
+    // Checked: copy shipping to billing and skip step
+    if (cart?.shipping_address) {
       const { id, ...billing_address } = cart.shipping_address
       await updateCart({ billing_address })
       router.push(pathname + "?step=delivery", { scroll: false })
     }
   }
+
+  // Auto-apply same-as-shipping when landing on billing step and no billing set
+  // This skips the step by default, but users can come back and uncheck to edit.
+  
+  useEffect(() => {
+    const shouldAutoApply =
+      isOpen &&
+      sameAsBilling &&
+      !!cart?.shipping_address?.address_1 &&
+      !compareAddresses(cart.shipping_address!, cart.billing_address || ({} as any))
+
+    if (shouldAutoApply) {
+      const apply = async () => {
+        const { id, ...billing_address } = cart!.shipping_address!
+        await updateCart({ billing_address })
+        router.push(pathname + "?step=delivery", { scroll: false })
+      }
+      apply()
+    }
+  }, [isOpen, sameAsBilling, cart?.shipping_address, cart?.billing_address, pathname, router])
 
   const handleSubmit = async (formData: FormData) => {
     await setBillingAddress(formData).catch((e) => {
@@ -81,22 +108,35 @@ const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
                 }
               )}
             >
-              Billing Address
+              Számlázási cím
             </Heading>
             {!isOpen && cart?.billing_address?.address_1 && (
-              <CheckCircleSolid />
+              <CheckCircleSolid className="text-green-600" />
             )}
           </div>
-          {cart?.shipping_address?.address_1 && (
-            <CheckboxWithLabel
-              disabled={cartApprovalStatus === ApprovalStatusType.PENDING}
-              label="Same as shipping address"
-              name="same_as_billing"
-              checked={sameAsBilling}
-              onChange={handleToggleSameAsBilling}
-              data-testid="billing-address-checkbox"
-            />
-          )}
+          <div className="flex items-center gap-4">
+            {!isOpen && cart?.billing_address?.address_1 && (
+              <Text>
+                <button
+                  onClick={handleEdit}
+                  className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
+                  data-testid="edit-billing-address-button"
+                >
+                  Szerkesztés
+                </button>
+              </Text>
+            )}
+            {cart?.shipping_address?.address_1 && (
+              <CheckboxWithLabel
+                disabled={cartApprovalStatus === ApprovalStatusType.PENDING}
+                label="Számlázási cím megegyezik a szállítási címmel"
+                name="same_as_billing"
+                checked={sameAsBilling}
+                onChange={handleToggleSameAsBilling}
+                data-testid="billing-address-checkbox"
+              />
+            )}
+          </div>
         </div>
         {!isOpen && cart?.billing_address?.address_1 && <Divider />}
         {isOpen ? (

@@ -104,11 +104,8 @@ const CartDrawer = ({
   }, [pathname])
 
   const checkoutStep = cart ? getCheckoutStep(cart) : undefined
-  const checkoutPath = customer
-    ? checkoutStep
-      ? `/checkout?step=${checkoutStep}`
-      : "/checkout"
-    : "/account"
+  // Guest checkout allowed: always link to checkout
+  const checkoutPath = checkoutStep ? `/checkout?step=${checkoutStep}` : "/checkout"
 
   return (
     <>
@@ -131,7 +128,7 @@ const CartDrawer = ({
                     amount: subtotal,
                     currency_code: cart.currency_code,
                   })
-                : "Cart"}
+                : "Kosár"}
             </span>
             <div className="bg-blue-500 text-white text-xs px-1.5 py-px rounded-full">
               {totalItems}
@@ -145,8 +142,8 @@ const CartDrawer = ({
           <Drawer.Header className="flex self-center">
             <Drawer.Title>
               {totalItems > 0
-                ? `You have ${totalItems} items in your cart`
-                : "Your cart is empty"}
+                ? `${totalItems} termék van a kosárban`
+                : "A kosár üres"}
             </Drawer.Title>
           </Drawer.Header>
           {cart?.approvals && cart.approvals.length > 0 && (
@@ -176,7 +173,7 @@ const CartDrawer = ({
                     />
                   )}
                   <div className="flex justify-between">
-                    <Text>Subtotal</Text>
+                    <Text>Részösszeg</Text>
                     <Text>
                       {convertToLocale({
                         amount: subtotal,
@@ -191,7 +188,7 @@ const CartDrawer = ({
                         className="w-full"
                         size="large"
                       >
-                        View Cart
+                        Kosár megtekintése
                       </Button>
                     </LocalizedClientLink>
                     <LocalizedClientLink href={checkoutPath}>
@@ -201,19 +198,15 @@ const CartDrawer = ({
                         disabled={totalItems === 0 || spendLimitExceeded}
                       >
                         <LockClosedSolidMini />
-                        {customer
-                          ? spendLimitExceeded
-                            ? "Spending Limit Exceeded"
-                            : "Secure Checkout"
-                          : "Log in to checkout"}
+                        {spendLimitExceeded ? "Költési limit túllépve" : "Fizetés"}
                       </Button>
                     </LocalizedClientLink>
                     {spendLimitExceeded && (
                       <div className="flex items-center gap-x-2 bg-neutral-100 p-3 rounded-md shadow-borders-base">
                         <ExclamationCircle className="text-orange-500 w-fit overflow-visible" />
                         <p className="text-neutral-950 text-xs">
-                          This order exceeds your spending limit. Please contact
-                          your manager for approval.
+                          Ez a rendelés túllépi a költési limitet. Kérjük, vedd
+                          fel a kapcsolatot a vezetőddel jóváhagyásért.
                         </p>
                       </div>
                     )}

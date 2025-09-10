@@ -9,7 +9,7 @@ const CountrySelect = forwardRef<
   NativeSelectProps & {
     region?: HttpTypes.StoreRegion
   }
->(({ placeholder = "Country", region, defaultValue, ...props }, ref) => {
+>(({ placeholder = "Ország", region, defaultValue, ...props }, ref) => {
   const innerRef = useRef<HTMLSelectElement>(null)
 
   useImperativeHandle<HTMLSelectElement | null, HTMLSelectElement | null>(
@@ -18,14 +18,24 @@ const CountrySelect = forwardRef<
   )
 
   const countryOptions = useMemo(() => {
-    if (!region) {
-      return []
+    const allowed = new Set(["hu", "sk"]) // Hungary, Slovakia
+
+    // If region is provided, prefer its labels but filter to allowed list
+    if (region) {
+      const inRegion = region.countries
+        ?.filter((c) => c.iso_2 && allowed.has(c.iso_2.toLowerCase()))
+        .map((country) => ({
+          value: country.iso_2.toLowerCase(),
+          label: country.display_name,
+        }))
+      if (inRegion && inRegion.length > 0) return inRegion
     }
 
-    return region.countries?.map((country) => ({
-      value: country.iso_2,
-      label: country.display_name,
-    }))
+    // Fallback: hardcode the two options
+    return [
+      { value: "hu", label: "Hungary" },
+      { value: "sk", label: "Slovakia" },
+    ]
   }, [region])
 
   return (

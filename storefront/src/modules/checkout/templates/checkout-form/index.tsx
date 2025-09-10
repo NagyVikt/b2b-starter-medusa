@@ -1,7 +1,6 @@
 import { listCartShippingMethods } from "@/lib/data/fulfillment"
 import { listCartPaymentMethods } from "@/lib/data/payment"
 import ApprovalStatusBanner from "@/modules/cart/components/approval-status-banner"
-import SignInPrompt from "@/modules/cart/components/sign-in-prompt"
 import BillingAddress from "@/modules/checkout/components/billing-address"
 import Company from "@/modules/checkout/components/company"
 import ContactDetails from "@/modules/checkout/components/contact-details"
@@ -47,7 +46,7 @@ export default async function CheckoutForm({
           </Button>
         </LocalizedClientLink>
 
-        {!customer ? <SignInPrompt /> : null}
+        {/* Guest checkout: no sign-in prompt */}
 
         {cart.approval_status &&
           cart.approval_status.status !== ApprovalStatusType.APPROVED && (

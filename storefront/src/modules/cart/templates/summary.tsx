@@ -30,7 +30,8 @@ const Summary = ({ customer, spendLimitExceeded }: SummaryProps) => {
     ? `/checkout?step=${checkoutStep}`
     : "/checkout"
 
-  const checkoutButtonLink = customer ? checkoutPath : "/account"
+  // Guest checkout allowed: always link to checkout
+  const checkoutButtonLink = checkoutPath
 
   const isPendingApproval = cart?.approvals?.some(
     (approval) => approval?.status === ApprovalStatusType.PENDING
@@ -60,11 +61,7 @@ const Summary = ({ customer, spendLimitExceeded }: SummaryProps) => {
           className="w-full h-10 rounded-full shadow-none"
           disabled={spendLimitExceeded}
         >
-          {customer
-            ? spendLimitExceeded
-              ? "Spending Limit Exceeded"
-              : "Checkout"
-            : "Log in to Checkout"}
+          {spendLimitExceeded ? "Spending Limit Exceeded" : "Checkout"}
         </Button>
       </LocalizedClientLink>
       {!!customer && (
