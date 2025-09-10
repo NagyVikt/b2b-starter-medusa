@@ -8,7 +8,7 @@ import { SubmitButton } from "@/modules/checkout/components/submit-button"
 import Input from "@/modules/common/components/input"
 import { HttpTypes } from "@medusajs/types"
 import { Checkbox, Label, Select, Text } from "@medusajs/ui"
-import { ChangeEvent, useActionState, useState } from "react"
+import { ChangeEvent, useActionState, useEffect, useState } from "react"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
@@ -61,6 +61,9 @@ const placeholder = ({
 const Register = ({ setCurrentView, regions }: Props) => {
   const [message, formAction] = useActionState(signup, null)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [accountType, setAccountType] = useState<"personal" | "company">(
+    "personal"
+  )
   const [formData, setFormData] = useState<FormData>(initialFormData)
 
   const handleChange = (
@@ -80,26 +83,35 @@ const Register = ({ setCurrentView, regions }: Props) => {
     }))
   }
 
-  const isValid =
-    termsAccepted &&
+  // When switching to company account, prefill currency to EUR if empty
+  useEffect(() => {
+    if (accountType === "company" && !formData.currency_code) {
+      setFormData((prev) => ({ ...prev, currency_code: "eur" }))
+    }
+  }, [accountType])
+
+  const isValid = termsAccepted &&
     !!formData.email &&
     !!formData.first_name &&
     !!formData.last_name &&
-    !!formData.company_name &&
     !!formData.password &&
-    !!formData.company_address &&
-    !!formData.company_city &&
-    !!formData.company_zip &&
-    !!formData.company_country &&
-    !!formData.currency_code
+    (accountType === "personal"
+      ? true
+      : !!formData.company_name &&
+        !!formData.company_address &&
+        !!formData.company_city &&
+        !!formData.company_zip &&
+        !!formData.company_country &&
+        !!formData.currency_code)
 
-  const countryNames = regions
-    .flatMap((region) =>
-      region.countries?.map((country) => country?.display_name || country?.name)
-    )
-    .filter((country) => country !== undefined)
+  // Limit selectable countries to HU/SK with flags and Hungarian labels
+  const allowedCountries = [
+    { value: "Hungary", label: "🇭🇺 Magyarország" },
+    { value: "Slovakia", label: "🇸🇰 Szlovákia" },
+  ] as const
 
-  const currencies = regions.map((region) => region.currency_code)
+  // Limit currency to EUR only
+  const allowedCurrencies = [{ value: "eur", label: "EUR (€)" }] as const
 
   return (
     <div
@@ -107,11 +119,38 @@ const Register = ({ setCurrentView, regions }: Props) => {
       data-testid="register-page"
     >
       <Text className="text-4xl text-neutral-950 text-left mb-4">
-        Create your
-        <br />
-        company account.
+        {accountType === "company" ? (
+          <>Hozz létre céges (viszonteladói) fiókot.</>
+        ) : (
+          <>Hozz létre személyes fiókot.</>
+        )}
       </Text>
       <form className="w-full flex flex-col" action={formAction}>
+        <input type="hidden" name="account_type" value={accountType} />
+        <div className="flex items-center gap-3 mb-2">
+          <button
+            type="button"
+            onClick={() => setAccountType("personal")}
+            className={`px-3 py-1.5 rounded-full border ${
+              accountType === "personal"
+                ? "bg-neutral-900 text-white border-neutral-900"
+                : "bg-white text-neutral-800 border-neutral-300"
+            }`}
+          >
+            Személyes
+          </button>
+          <button
+            type="button"
+            onClick={() => setAccountType("company")}
+            className={`px-3 py-1.5 rounded-full border ${
+              accountType === "company"
+                ? "bg-neutral-900 text-white border-neutral-900"
+                : "bg-white text-neutral-800 border-neutral-300"
+            }`}
+          >
+            Cég / Viszonteladó
+          </button>
+        </div>
         <div className="flex flex-col w-full gap-y-4">
           <Input
             label="Email"
@@ -144,16 +183,18 @@ const Register = ({ setCurrentView, regions }: Props) => {
             value={formData.last_name}
             onChange={handleChange}
           />
-          <Input
-            label="Company name"
-            name="company_name"
-            required
-            autoComplete="organization"
-            data-testid="company-name-input"
-            className="bg-white"
-            value={formData.company_name}
-            onChange={handleChange}
-          />
+          {accountType === "company" && (
+            <Input
+              label="Cégnév"
+              name="company_name"
+              required
+              autoComplete="organization"
+              data-testid="company-name-input"
+              className="bg-white"
+              value={formData.company_name}
+              onChange={handleChange}
+            />
+          )}
           <Input
             label="Password"
             name="password"
@@ -165,93 +206,97 @@ const Register = ({ setCurrentView, regions }: Props) => {
             value={formData.password}
             onChange={handleChange}
           />
-          <Input
-            label="Company address"
-            name="company_address"
-            required
-            autoComplete="address"
-            data-testid="company-address-input"
-            className="bg-white"
-            value={formData.company_address}
-            onChange={handleChange}
-          />
-          <Input
-            label="Company city"
-            name="company_city"
-            required
-            autoComplete="city"
-            data-testid="company-city-input"
-            className="bg-white"
-            value={formData.company_city}
-            onChange={handleChange}
-          />
-          <Input
-            label="Company state"
-            name="company_state"
-            autoComplete="state"
-            data-testid="company-state-input"
-            className="bg-white"
-            value={formData.company_state}
-            onChange={handleChange}
-          />
-          <Input
-            label="Company zip"
-            name="company_zip"
-            required
-            autoComplete="postal-code"
-            data-testid="company-zip-input"
-            className="bg-white"
-            value={formData.company_zip}
-            onChange={handleChange}
-          />
-          <Select
-            name="company_country"
-            required
-            autoComplete="country"
-            data-testid="company-country-input"
-            value={formData.company_country}
-            onValueChange={handleSelectChange("company_country")}
-          >
-            <Select.Trigger className="rounded-full h-10 px-4">
-              <Select.Value
-                placeholder={placeholder({
-                  placeholder: "Select a country",
-                  required: true,
-                })}
+          {accountType === "company" && (
+            <>
+              <Input
+                label="Cég címe"
+                name="company_address"
+                required
+                autoComplete="address"
+                data-testid="company-address-input"
+                className="bg-white"
+                value={formData.company_address}
+                onChange={handleChange}
               />
-            </Select.Trigger>
-            <Select.Content>
-              {countryNames?.map((country) => (
-                <Select.Item key={country} value={country}>
-                  {country}
-                </Select.Item>
-              ))}
-            </Select.Content>
-          </Select>
-          <Select
-            name="currency_code"
-            required
-            autoComplete="currency"
-            data-testid="company-currency-input"
-            value={formData.currency_code}
-            onValueChange={handleSelectChange("currency_code")}
-          >
-            <Select.Trigger className="rounded-full h-10 px-4">
-              <Select.Value
-                placeholder={placeholder({
-                  placeholder: "Select a currency",
-                  required: true,
-                })}
+              <Input
+                label="Város"
+                name="company_city"
+                required
+                autoComplete="city"
+                data-testid="company-city-input"
+                className="bg-white"
+                value={formData.company_city}
+                onChange={handleChange}
               />
-            </Select.Trigger>
-            <Select.Content>
-              {[...new Set(currencies)].map((currency) => (
-                <Select.Item key={currency} value={currency}>
-                  {currency.toUpperCase()} ({currencySymbolMap[currency]})
-                </Select.Item>
-              ))}
-            </Select.Content>
-          </Select>
+              <Input
+                label="Megye"
+                name="company_state"
+                autoComplete="state"
+                data-testid="company-state-input"
+                className="bg-white"
+                value={formData.company_state}
+                onChange={handleChange}
+              />
+              <Input
+                label="Irányítószám"
+                name="company_zip"
+                required
+                autoComplete="postal-code"
+                data-testid="company-zip-input"
+                className="bg-white"
+                value={formData.company_zip}
+                onChange={handleChange}
+              />
+              <Select
+                name="company_country"
+                required
+                autoComplete="country"
+                data-testid="company-country-input"
+                value={formData.company_country}
+                onValueChange={handleSelectChange("company_country")}
+              >
+                <Select.Trigger className="rounded-full h-10 px-4">
+                  <Select.Value
+                    placeholder={placeholder({
+                      placeholder: "Válassz országot",
+                      required: true,
+                    })}
+                  />
+                </Select.Trigger>
+              <Select.Content>
+                {allowedCountries.map((c) => (
+                  <Select.Item key={c.value} value={c.value}>
+                    {c.label}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+              </Select>
+              <Select
+                name="currency_code"
+                required
+                autoComplete="currency"
+                data-testid="company-currency-input"
+                value={formData.currency_code}
+                onValueChange={handleSelectChange("currency_code")}
+              >
+                <Select.Trigger className="rounded-full h-10 px-4">
+                  <Select.Value
+                    placeholder={placeholder({
+                      placeholder: "Válassz pénznemet",
+                      required: true,
+                    })}
+                  />
+                </Select.Trigger>
+              <Select.Content>
+                {allowedCurrencies.map((c) => (
+                  <Select.Item key={c.value} value={c.value}>
+                    {c.label}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+              </Select>
+            </>
+          )}
         </div>
         <div className="border-b border-neutral-200 my-6" />
         <ErrorMessage error={message} data-testid="register-error" />
@@ -277,16 +322,16 @@ const Register = ({ setCurrentView, regions }: Props) => {
           data-testid="register-button"
           disabled={!isValid}
         >
-          Register
+          Regisztráció
         </SubmitButton>
       </form>
       <span className="text-center text-ui-fg-base text-small-regular mt-6">
-        Already a member?{" "}
+        Már van fiókod?{" "}
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.LOG_IN)}
           className="underline"
         >
-          Log in
+          Bejelentkezés
         </button>
         .
       </span>

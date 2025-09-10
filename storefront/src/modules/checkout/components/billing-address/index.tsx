@@ -118,9 +118,11 @@ const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
             {!isOpen && cart?.billing_address?.address_1 && (
               <Text>
                 <button
+                  type="button"
                   onClick={handleEdit}
-                  className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
+                  className="px-3 py-1 rounded-full border border-neutral-300 text-neutral-700 hover:bg-neutral-100"
                   data-testid="edit-billing-address-button"
+                  aria-label="Számlázási cím szerkesztése"
                 >
                   Szerkesztés
                 </button>
@@ -142,22 +144,6 @@ const BillingAddress = ({ cart }: { cart: B2BCart | null }) => {
         {isOpen ? (
           <div>
             <Divider />
-            {/* Quick link to edit shipping while billing is open */}
-            <div className="flex justify-end py-2">
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(
-                    pathname + "?" + createQueryString("step", "shipping-address"),
-                    { scroll: false }
-                  )
-                }
-                className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover underline"
-              >
-                {/* This handler will be replaced to go to shipping step */}
-                Szállítási cím szerkesztése
-              </button>
-            </div>
             <form action={handleSubmit}>
               <div className="py-2">
                 <BillingAddressForm cart={cart} />

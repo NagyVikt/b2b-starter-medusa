@@ -64,12 +64,13 @@ export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
 
 export async function signup(_currentState: unknown, formData: FormData) {
   const password = formData.get("password") as string
+  const accountType = (formData.get("account_type") as string) || "personal"
   const customerForm = {
     email: formData.get("email") as string,
     first_name: formData.get("first_name") as string,
     last_name: formData.get("last_name") as string,
-    phone: formData.get("phone") as string,
-    company_name: formData.get("company_name") as string,
+    phone: (formData.get("phone") as string) || "",
+    company_name: (formData.get("company_name") as string) || "",
   }
 
   try {
@@ -80,11 +81,8 @@ export async function signup(_currentState: unknown, formData: FormData) {
 
     const customHeaders = { authorization: `Bearer ${token}` }
 
-    const { customer: createdCustomer } = await sdk.store.customer.create(
-      customerForm,
-      {},
-      customHeaders
-    )
+    const { customer: createdCustomer } = await sdk.store.customer
+      .create(customerForm, {}, customHeaders)
 
     const loginToken = await sdk.auth.login("customer", "emailpass", {
       email: customerForm.email,
@@ -93,28 +91,33 @@ export async function signup(_currentState: unknown, formData: FormData) {
 
     setAuthToken(loginToken as string)
 
-    const companyForm = {
-      name: formData.get("company_name") as string,
-      email: formData.get("email") as string,
-      phone: formData.get("company_phone") as string,
-      address: formData.get("company_address") as string,
-      city: formData.get("company_city") as string,
-      state: formData.get("company_state") as string,
-      zip: formData.get("company_zip") as string,
-      country: formData.get("company_country") as string,
-      currency_code: formData.get("currency_code") as string,
+    let createdCompany = null
+    let createdEmployee = null
+
+    if (accountType === "company") {
+      const companyForm = {
+        name: formData.get("company_name") as string,
+        email: formData.get("email") as string,
+        phone: (formData.get("company_phone") as string) || "",
+        address: formData.get("company_address") as string,
+        city: formData.get("company_city") as string,
+        state: (formData.get("company_state") as string) || "",
+        zip: formData.get("company_zip") as string,
+        country: formData.get("company_country") as string,
+        currency_code: formData.get("currency_code") as string,
+      }
+
+      createdCompany = await createCompany(companyForm)
+
+      createdEmployee = await createEmployee({
+        company_id: createdCompany?.id as string,
+        customer_id: createdCustomer.id,
+        is_admin: true,
+        spending_limit: 0,
+      }).catch((err) => {
+        console.log("error creating employee", err)
+      })
     }
-
-    const createdCompany = await createCompany(companyForm)
-
-    const createdEmployee = await createEmployee({
-      company_id: createdCompany?.id as string,
-      customer_id: createdCustomer.id,
-      is_admin: true,
-      spending_limit: 0,
-    }).catch((err) => {
-      console.log("error creating employee", err)
-    })
 
     const cacheTag = await getCacheTag("customers")
     revalidateTag(cacheTag)

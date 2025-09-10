@@ -1,6 +1,7 @@
 "use client"
 
 import { setShippingAddress, updateCart } from "@/lib/data/cart"
+import Button from "@/modules/common/components/button"
 import ErrorMessage from "@/modules/checkout/components/error-message"
 import ShippingAddressForm from "@/modules/checkout/components/shipping-address-form"
 import { SubmitButton } from "@/modules/checkout/components/submit-button"
@@ -11,6 +12,7 @@ import { B2BCart, B2BCustomer } from "@/types"
 import { ApprovalStatusType } from "@/types/approval"
 import { CheckCircleSolid } from "@medusajs/icons"
 import { Container, Heading, Text } from "@medusajs/ui"
+import { Pencil } from "lucide-react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useState } from "react"
 
@@ -90,16 +92,18 @@ const ShippingAddress = ({
           </Heading>
 
           {!isOpen && cart?.shipping_address?.address_1 && (
-              <Text>
-                <button
-                  onClick={handleEdit}
-                  className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
-                  data-testid="edit-address-button"
-                >
-                  Szerkesztés
-                </button>
-              </Text>
-            )}
+            <Text>
+              <Button
+                variant="secondary"
+                onClick={handleEdit}
+                className="rounded-full px-3 py-1.5 !shadow-none !border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100"
+                data-testid="edit-address-button"
+                aria-label="Szállítási cím szerkesztése"
+              >
+                <Pencil className="h-4 w-4 mr-1.5" /> Szerkesztés
+              </Button>
+            </Text>
+          )}
         </div>
         <Divider />
         {isOpen ? (
