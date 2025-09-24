@@ -6,38 +6,45 @@ import { loadEnv, defineConfig, Modules } from "@medusajs/framework/utils";
 loadEnv(process.env.NODE_ENV!, process.cwd());
 
 module.exports = defineConfig({
-  // ✅ Admin plugin configuration
-  plugins: [
-    {
-      resolve: "@medusajs/admin",
-      /** @type {import('@medusajs/admin').PluginOptions} */
-      options: {
-        // Serve the admin with the backend under /app
-        serve: true,
-        path: "/app",
+  // ✅ Medusa v2 Admin configuration (no plugin needed)
+  admin: {
+    // where the admin is served by the backend
+    path: "/app",
 
-        // Tell the admin where your backend is (via Traefik)
-        // For production builds, also set MEDUSA_ADMIN_BACKEND_URL to this.
-        backend: "https://admin.teherguminet.hu",
+    // where the admin should talk to (your backend URL through Traefik)
+    backendUrl:
+      process.env.MEDUSA_ADMIN_BACKEND_URL ?? "https://admin.teherguminet.hu",
 
-        // Make the dev server line up with your reverse proxy/domain
-        develop: {
+    // optional: ensure the admin is not disabled
+    disable: false,
+
+    // optional: tweak Vite so it works behind Traefik at /app with WSS HMR
+    vite: (config) => {
+      // Serve assets/modules under /app/
+      config.base = "/app/";
+
+      // Make dev server bind correctly and use WSS over your domain
+      config.server = {
+        ...(config.server ?? {}),
+        host: true,
+        origin: "https://admin.teherguminet.hu",
+        allowedHosts: ["admin.teherguminet.hu"],
+        hmr: {
+          protocol: "wss",
           host: "admin.teherguminet.hu",
-          port: 9000,
-          allowedHosts: "auto",
-          // Force HMR over WSS through your domain, under /app
-          webSocketURL: "wss://admin.teherguminet.hu/app",
-          // Optional niceties:
-          // open: false,
-          // logLevel: "error",
-          // stats: "normal",
+          clientPort: 443,
+          path: "/app",
         },
-      },
+      };
+
+      return config; // mutate & return (prevents duplicate react-refresh)
     },
-  ],
+  },
 
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
+    // ✅ expose Redis so you don’t get “fake redis” message
+    redisUrl: process.env.REDIS_URL,
     http: {
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,
@@ -48,18 +55,10 @@ module.exports = defineConfig({
   },
 
   modules: {
-    [COMPANY_MODULE]: {
-      resolve: "./modules/company",
-    },
-    [QUOTE_MODULE]: {
-      resolve: "./modules/quote",
-    },
-    [APPROVAL_MODULE]: {
-      resolve: "./modules/approval",
-    },
-    [Modules.CACHE]: {
-      resolve: "@medusajs/medusa/cache-inmemory",
-    },
+    [COMPANY_MODULE]: { resolve: "./modules/company" },
+    [QUOTE_MODULE]: { resolve: "./modules/quote" },
+    [APPROVAL_MODULE]: { resolve: "./modules/approval" },
+    [Modules.CACHE]: { resolve: "@medusajs/medusa/cache-inmemory" },
     [Modules.WORKFLOW_ENGINE]: {
       resolve: "@medusajs/medusa/workflow-engine-inmemory",
     },
