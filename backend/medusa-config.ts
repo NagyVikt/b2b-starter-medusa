@@ -8,11 +8,15 @@ loadEnv(process.env.NODE_ENV!, process.cwd());
 module.exports = defineConfig({
   admin: {
     path: "/app",
-    vite: {
+    vite: (config) => ({
+      ...config,
       server: {
-        allowedHosts: ["admin.teherguminet.hu"],
+        ...(config.server ?? {}),
+        allowedHosts: Array.isArray(config.server?.allowedHosts)
+          ? [...config.server.allowedHosts, "admin.teherguminet.hu"]
+          : ["admin.teherguminet.hu"],
       },
-    },
+    }),
   },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
