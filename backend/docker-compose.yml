@@ -47,10 +47,6 @@ services:
       - "traefik.http.routers.medusa-https.service=medusa"
       - "traefik.http.routers.medusa-https.priority=10"
 
-      # Middleware: strip /app
-      - "traefik.http.middlewares.strip-app.stripprefix.prefixes=/app"
-      - "traefik.http.routers.medusa-https.middlewares=strip-app"
-
 volumes:
   postgres_data:
 
