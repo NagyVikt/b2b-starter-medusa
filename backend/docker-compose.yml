@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  medusa-backend:
+    build: ./backend
+    container_name: medusa-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=9000
+      - DATABASE_URL=postgres://tehergumiadmin:YOURPASS@YOURDBHOST:5432/tehergumi
+      - REDIS_URL=redis://YOURREDIS:6379
+      - JWT_SECRET=your-secret
+      - COOKIE_SECRET=your-cookie-secret
+      - MEDUSA_ADMIN_CORS=https://admin.teherguminet.hu
+      - MEDUSA_STORE_CORS=https://teherguminet.hu,https://www.teherguminet.hu
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
+      - "traefik.http.services.medusa.loadbalancer.server.port=9000"
+      - "traefik.http.routers.medusa.rule=Host(`admin.teherguminet.hu`)"
+      - "traefik.http.routers.medusa.entrypoints=https"
+      - "traefik.http.routers.medusa.tls=true"
+      - "traefik.http.routers.medusa.tls.certresolver=letsencrypt"
+
+networks:
+  coolify:
+    external: true
