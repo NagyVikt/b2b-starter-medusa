@@ -9,14 +9,27 @@ module.exports = defineConfig({
   admin: {
     path: "/app",
     vite: (config) => {
+      // Make Vite serve everything under /app/
+      config.base = "/app/";
+
+      // Server + HMR behind HTTPS reverse proxy at admin.teherguminet.hu
       config.server = {
         ...(config.server ?? {}),
+        host: true, // bind 0.0.0.0
+        origin: "https://admin.teherguminet.hu",
         allowedHosts: ["admin.teherguminet.hu"],
-        host: true,
+        hmr: {
+          host: "admin.teherguminet.hu",
+          protocol: "wss",
+          clientPort: 443,
+          path: "/app",
+        },
       };
-      return config; // <-- mutate & return, don't spread the whole config
+
+      return config; // mutate & return (avoid duplicating plugins)
     },
   },
+
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     http: {
