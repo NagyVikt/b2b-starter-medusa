@@ -2,36 +2,36 @@ version: "3.8"
 
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:15-alpine
     container_name: medusa_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    env_file:
-      - .env
+      POSTGRES_DB: medusa-store
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "medusa-store"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     networks:
       - medusa_network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1 || exit 1",
-        ]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-      start_period: 20s
+      - coolify
 
   redis:
     image: redis:7-alpine
     container_name: medusa_redis
     restart: unless-stopped
-    ports: ["6379:6379"]
-    networks: [medusa_network, coolify]
+    ports:
+      - "6379:6379"
+    networks:
+      - medusa_network
+      - coolify
 
   medusa:
     build: .
@@ -44,18 +44,32 @@ services:
         condition: service_started
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Disable SSL for local Postgres (pick ONE of the two lines below)
+      PGSSLMODE: disable
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/medusa-store
+      # (Alternative) DATABASE_URL: postgres://postgres:postgres@postgres:5432/medusa-store?sslmode=disable
+
+      # Redis
       REDIS_URL: redis://redis:6379/0
+
+      # Expose an admin backend URL for admin UI (used by medusa-config.ts)
+      MEDUSA_ADMIN_BACKEND_URL: https://admin.teherguminet.hu
     env_file:
       - .env
     volumes:
       - .:/server
       - /server/node_modules
-    networks: [medusa_network, coolify]
+    networks:
+      - medusa_network
+      - coolify
+
+    # Traefik (Coolify) — routes https://admin.teherguminet.hu to the Medusa container (port 9000)
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=coolify"
+
       - "traefik.http.services.medusa.loadbalancer.server.port=9000"
+
       - "traefik.http.routers.medusa-https.rule=Host(`admin.teherguminet.hu`)"
       - "traefik.http.routers.medusa-https.entrypoints=https"
       - "traefik.http.routers.medusa-https.tls=true"
