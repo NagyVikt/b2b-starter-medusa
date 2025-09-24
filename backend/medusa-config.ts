@@ -7,37 +7,43 @@ loadEnv(process.env.NODE_ENV!, process.cwd());
 
 module.exports = defineConfig({
   // ✅ Medusa v2 Admin configuration (no plugin needed)
+  // medusa.config.ts  (Medusa v2 style)
   admin: {
-    // where the admin is served by the backend
     path: "/app",
-
-    // where the admin should talk to (your backend URL through Traefik)
     backendUrl:
       process.env.MEDUSA_ADMIN_BACKEND_URL ?? "https://admin.teherguminet.hu",
-
-    // optional: ensure the admin is not disabled
     disable: false,
-
-    // optional: tweak Vite so it works behind Traefik at /app with WSS HMR
     vite: (config) => {
-      // Serve assets/modules under /app/
+      // Serve admin under /app
       config.base = "/app/";
 
-      // Make dev server bind correctly and use WSS over your domain
+      // Bind inside container; let Traefik terminate TLS
       config.server = {
         ...(config.server ?? {}),
-        host: true,
-        origin: "https://admin.teherguminet.hu",
-        allowedHosts: ["admin.teherguminet.hu"],
+        host: true, // 0.0.0.0
+        // DO NOT set `origin` (it can make Vite bind to that address)
         hmr: {
           protocol: "wss",
           host: "admin.teherguminet.hu",
           clientPort: 443,
           path: "/app",
+          // DO NOT set `port` here → avoids random bind to public IP:port
         },
       };
 
-      return config; // mutate & return (prevents duplicate react-refresh)
+      // B) De-dupe react-refresh (see below)
+      const seen = new Set<string>();
+      config.plugins = (config.plugins ?? []).filter((p: any) => {
+        const name = p?.name ?? "";
+        const isRefreshish =
+          /react-refresh|vite:react-babel|vite:react-jsx/.test(name);
+        if (!isRefreshish) return true;
+        if (seen.has("react-refresh-family")) return false;
+        seen.add("react-refresh-family");
+        return true;
+      });
+
+      return config;
     },
   },
 
