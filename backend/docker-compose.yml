@@ -1,11 +1,33 @@
 version: "3.8"
 
 services:
+  # PostgreSQL (internal to the compose network)
+  postgres:
+    image: postgres:17-alpine
+    container_name: medusa_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tehergumi
+      POSTGRES_USER: tehergumiadmin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - medusa_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   # Redis
   redis:
     image: redis:7-alpine
     container_name: medusa_redis
     restart: unless-stopped
+    # If 6379 is already used on the host, you can remove the ports section.
     ports:
       - "6379:6379"
     networks:
@@ -18,10 +40,14 @@ services:
     container_name: medusa_backend
     restart: unless-stopped
     depends_on:
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgres://tehergumiadmin:rdvl53oxgoGEWXx4AO03npRxBTfPHBpjAlyGrLzWuhGHbPaZYsFnfmPlDN5c0iJC@yg4wso8o884cggwgccww4ocw:5432/tehergumi
+      # Point to the *compose* Postgres service name
+      DATABASE_URL: postgres://tehergumiadmin:${POSTGRES_PASSWORD}@postgres:5432/tehergumi
       REDIS_URL: redis://redis:6379/0
     env_file:
       - .env
