@@ -2,27 +2,24 @@ version: "3.8"
 
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: medusa_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: medusa-store
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:-tehergumi}
+      POSTGRES_USER: ${POSTGRES_USER:-tehergumiadmin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_now}
+    # REMOVE the ports block to avoid 5432 conflicts with host Postgres
+    # ports:
+    #   - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "medusa-store"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 20
-      start_period: 10s
-    networks:
-      - medusa_network
-      - coolify
-
+    networks: [medusa_network, coolify]
   redis:
     image: redis:7-alpine
     container_name: medusa_redis
