@@ -1,14 +1,13 @@
 version: "3.8"
 
 services:
-  # PostgreSQL (internal to the compose network)
   postgres:
     image: postgres:17-alpine
     container_name: medusa_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: tehergumi
-      POSTGRES_USER: tehergumiadmin
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     env_file:
       - .env
@@ -17,24 +16,23 @@ services:
     networks:
       - medusa_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1 || exit 1",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
 
-  # Redis
   redis:
     image: redis:7-alpine
     container_name: medusa_redis
     restart: unless-stopped
-    # If 6379 is already used on the host, you can remove the ports section.
-    ports:
-      - "6379:6379"
-    networks:
-      - medusa_network
-      - coolify
+    ports: ["6379:6379"]
+    networks: [medusa_network, coolify]
 
-  # Medusa Backend
   medusa:
     build: .
     container_name: medusa_backend
@@ -46,26 +44,18 @@ services:
         condition: service_started
     environment:
       NODE_ENV: development
-      # Point to the *compose* Postgres service name
-      DATABASE_URL: postgres://tehergumiadmin:${POSTGRES_PASSWORD}@postgres:5432/tehergumi
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379/0
     env_file:
       - .env
     volumes:
       - .:/server
       - /server/node_modules
-    networks:
-      - medusa_network
-      - coolify
-
+    networks: [medusa_network, coolify]
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=coolify"
-
-      # Medusa backend service (port 9000 inside container)
       - "traefik.http.services.medusa.loadbalancer.server.port=9000"
-
-      # Router for admin.teherguminet.hu
       - "traefik.http.routers.medusa-https.rule=Host(`admin.teherguminet.hu`)"
       - "traefik.http.routers.medusa-https.entrypoints=https"
       - "traefik.http.routers.medusa-https.tls=true"
