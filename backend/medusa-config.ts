@@ -6,14 +6,6 @@ import { loadEnv, defineConfig, Modules } from "@medusajs/framework/utils";
 loadEnv(process.env.NODE_ENV!, process.cwd());
 
 module.exports = defineConfig({
-  admin: {
-    path: "/app",
-    vite: {
-      server: {
-        allowedHosts: ["admin.teherguminet.hu"],
-      },
-    },
-  },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     http: {
