@@ -8,22 +8,14 @@ loadEnv(process.env.NODE_ENV!, process.cwd());
 module.exports = defineConfig({
   admin: {
     path: "/app",
-    vite: (config) => ({
-      ...config,
-      server: {
+    vite: (config) => {
+      config.server = {
         ...(config.server ?? {}),
-        allowedHosts:
-          config.server?.allowedHosts === true
-            ? true
-            : Array.from(
-                new Set(
-                  Array.isArray(config.server?.allowedHosts)
-                    ? [...config.server.allowedHosts, "admin.teherguminet.hu"]
-                    : ["admin.teherguminet.hu"]
-                )
-              ),
-      },
-    }),
+        allowedHosts: ["admin.teherguminet.hu"],
+        host: true,
+      };
+      return config; // <-- mutate & return, don't spread the whole config
+    },
   },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
