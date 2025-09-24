@@ -2,14 +2,14 @@ version: "3.8"
 
 services:
   medusa-backend:
-    build: ./backend
+    build: .
     container_name: medusa-backend
     restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=9000
-      - DATABASE_URL=postgres://tehergumiadmin:YOURPASS@YOURDBHOST:5432/tehergumi
-      - REDIS_URL=redis://YOURREDIS:6379
+      - DATABASE_URL=postgres://tehergumiadmin:rdvl53oxgoGEWXx4AO03npRxBTfPHBpjAlyGrLzWuhGHbPaZYsFnfmPlDN5c0iJC@172.20.0.15:5432/tehergumi
+      - REDIS_URL=redis://default:zvMezVxP4HKFwtsSuC5TwqT2k99Yl8OCGdmqcs1hDNGRbMrFAPU9UEsjv5u2co30@kssos0cscgcc88wco80soc0g:6379/0
       - JWT_SECRET=your-secret
       - COOKIE_SECRET=your-cookie-secret
       - MEDUSA_ADMIN_CORS=https://admin.teherguminet.hu
