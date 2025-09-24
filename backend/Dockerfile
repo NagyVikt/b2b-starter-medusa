@@ -16,8 +16,7 @@ COPY . .
 # Build TypeScript → JavaScript
 RUN yarn build
 
-# Medusa needs to know where the config is.
-# If you use medusa-config.ts, build will output dist/medusa-config.js
+# Point Medusa at the compiled config
 ENV MEDUSA_CONFIG_FILE=./dist/medusa-config.js
 
 # Runtime environment
