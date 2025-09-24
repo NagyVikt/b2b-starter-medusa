@@ -34,8 +34,10 @@ export default async function StorePage(props: Params) {
   const sort = sortBy || "created_at"
   const pageNumber = page ? parseInt(page) : 1
 
-  const categories = await listCategories()
-  const customer = await retrieveCustomer()
+  const [categories, customer] = await Promise.all([
+    listCategories(),
+    retrieveCustomer().catch(() => null),
+  ])
 
   return (
     <div className="bg-neutral-100">

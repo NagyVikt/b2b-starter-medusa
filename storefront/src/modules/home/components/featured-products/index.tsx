@@ -7,11 +7,13 @@ export default async function FeaturedProducts({
 }: {
   countryCode: string
 }) {
-  const { collections } = await listCollections({
-    limit: "3",
-    fields: "*products",
-  })
-  const region = await getRegion(countryCode)
+  const [{ collections }, region] = await Promise.all([
+    listCollections({
+      limit: "3",
+      fields: "*products",
+    }),
+    getRegion(countryCode),
+  ])
 
   if (!collections || !region) {
     return null

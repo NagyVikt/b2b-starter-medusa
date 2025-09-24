@@ -1,5 +1,3 @@
-"use client"
-
 import type { ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
@@ -66,6 +64,7 @@ const Hero = () => {
         alt="Gumiraktár háttér"
         fill
         priority
+        quality={70}
         sizes="100vw"
         className="object-cover object-center opacity-90"
       />
@@ -78,16 +77,7 @@ const Hero = () => {
         className="pointer-events-none absolute -right-[14%] -top-[26%] h-[170%] w-[54%] -skew-x-6 z-10"
         aria-hidden
       >
-        <div className="h-full w-full bg-[var(--f1)]/95 shadow-[0_0_120px_20px_rgba(225,6,0,0.35)]" />
-        <div
-          className="absolute inset-0 mix-blend-overlay opacity-25"
-          style={{
-            backgroundImage:
-              "linear-gradient(45deg, rgba(255,255,255,.9) 25%, transparent 25%), linear-gradient(-45deg, rgba(255,255,255,.9) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(255,255,255,.9) 75%), linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.9) 75%)",
-            backgroundSize: "22px 22px",
-            backgroundPosition: "0 0, 0 11px, 11px -11px, -11px 0",
-          }}
-        />
+        <div className="h-full w-full bg-[var(--f1)]/90 shadow-[0_0_80px_16px_rgba(225,6,0,0.25)]" />
       </div>
 
       <div className="relative z-20 mx-auto w-full max-w-[120rem] px-6 sm:px-10 lg:px-12 py-14 sm:py-16 lg:py-24">
@@ -232,7 +222,7 @@ const Hero = () => {
 
             {/* soft glow (below the wheel) */}
             <div
-              className="absolute -inset-24 rounded-full blur-3xl z-0"
+              className="absolute -inset-24 rounded-full blur-xl z-0"
               style={{
                 background:
                   "radial-gradient(closest-side, rgba(225,6,0,.35), transparent 65%)",
@@ -248,6 +238,7 @@ const Hero = () => {
                 fill
                 sizes="50vw"
                 priority={false}
+                quality={60}
                 className="select-none object-contain drop-shadow-[0_28px_56px_rgba(0,0,0,0.45)] origin-center transform-gpu scale-[1.5]"
                 draggable={false}
               />

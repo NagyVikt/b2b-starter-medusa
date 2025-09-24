@@ -1,5 +1,3 @@
-import { retrieveCart } from "@/lib/data/cart"
-import { retrieveCustomer } from "@/lib/data/customer"
 import AccountButton from "@/modules/account/components/account-button"
 import CartButton from "@/modules/cart/components/cart-button"
 import LocalizedClientLink from "@/modules/common/components/localized-client-link"
@@ -13,10 +11,20 @@ import SkeletonCartButton from "@/modules/skeletons/components/skeleton-cart-but
 import SkeletonMegaMenu from "@/modules/skeletons/components/skeleton-mega-menu"
 import SearchBar from "@/modules/layout/components/search-bar"
 import { Suspense } from "react"
+import { B2BCart, B2BCustomer } from "@/types/global"
+import { StoreFreeShippingPrice } from "@/types/shipping-option/http"
 
-export async function NavigationHeader() {
-  const customer = await retrieveCustomer().catch(() => null)
-  const cart = await retrieveCart()
+type NavigationHeaderProps = {
+  customer: B2BCustomer | null
+  cart: B2BCart | null
+  freeShippingPrices: StoreFreeShippingPrice[]
+}
+
+export function NavigationHeader({
+  customer,
+  cart,
+  freeShippingPrices,
+}: NavigationHeaderProps) {
 
   return (
     <div className="sticky top-0 inset-x-0 group bg-white text-zinc-900 small:p-4 p-2 text-sm border-b duration-200 border-ui-border-base z-50">
@@ -80,7 +88,11 @@ export async function NavigationHeader() {
             </Suspense>
 
             <Suspense fallback={<SkeletonCartButton />}>
-              <CartButton />
+              <CartButton
+                cart={cart}
+                customer={customer}
+                freeShippingPrices={freeShippingPrices}
+              />
             </Suspense>
           </div>
         </div>

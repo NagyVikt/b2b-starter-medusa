@@ -7,7 +7,6 @@ import Footer from "@/modules/layout/templates/footer"
 import { NavigationHeader } from "@/modules/layout/templates/nav"
 import FreeShippingPriceNudge from "@/modules/shipping/components/free-shipping-price-nudge"
 import { StoreFreeShippingPrice } from "@/types/shipping-option/http"
-import { ArrowUpRightMini, ExclamationCircleSolid } from "@medusajs/icons"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -15,17 +14,22 @@ export const metadata: Metadata = {
 }
 
 export default async function PageLayout(props: { children: React.ReactNode }) {
-  const customer = await retrieveCustomer().catch(() => null)
-  const cart = await retrieveCart()
-  let freeShippingPrices: StoreFreeShippingPrice[] = []
+  const [customer, cart] = await Promise.all([
+    retrieveCustomer().catch(() => null),
+    retrieveCart().catch(() => null),
+  ])
 
-  if (cart) {
-    freeShippingPrices = await listCartFreeShippingPrices(cart.id)
-  }
+  const freeShippingPrices: StoreFreeShippingPrice[] = cart
+    ? await listCartFreeShippingPrices(cart.id).catch(() => [])
+    : []
 
   return (
     <>
-      <NavigationHeader />
+      <NavigationHeader
+        customer={customer}
+        cart={cart}
+        freeShippingPrices={freeShippingPrices}
+      />
 
       {customer && cart && (
         <CartMismatchBanner customer={customer} cart={cart} />
