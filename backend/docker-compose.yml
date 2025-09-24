@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   # Redis
   redis:
@@ -8,20 +10,18 @@ services:
       - "6379:6379"
     networks:
       - medusa_network
+      - coolify
 
-  # Medusa Server
+  # Medusa Backend
   medusa:
     build: .
     container_name: medusa_backend
     restart: unless-stopped
     depends_on:
-      - postgres
       - redis
-    ports:
-      - "9000:9000"
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgres://tehergumiadmin:rdvl53oxgoGEWXx4AO03npRxBTfPHBpjAlyGrLzWuhGHbPaZYsFnfmPlDN5c0iJC@postgres:5432/tehergumi
+      DATABASE_URL: postgres://tehergumiadmin:rdvl53oxgoGEWXx4AO03npRxBTfPHBpjAlyGrLzWuhGHbPaZYsFnfmPlDN5c0iJC@yg4wso8o884cggwgccww4ocw:5432/tehergumi
       REDIS_URL: redis://redis:6379/0
     env_file:
       - .env
@@ -30,6 +30,22 @@ services:
       - /server/node_modules
     networks:
       - medusa_network
+      - coolify
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
+
+      # Medusa backend service (port 9000 inside container)
+      - "traefik.http.services.medusa.loadbalancer.server.port=9000"
+
+      # Route Medusa backend to admin.teherguminet.hu
+      - "traefik.http.routers.medusa-https.rule=Host(`admin.teherguminet.hu`)"
+      - "traefik.http.routers.medusa-https.entrypoints=https"
+      - "traefik.http.routers.medusa-https.tls=true"
+      - "traefik.http.routers.medusa-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.medusa-https.service=medusa"
+      - "traefik.http.routers.medusa-https.priority=10"
 
 volumes:
   postgres_data:
@@ -37,3 +53,5 @@ volumes:
 networks:
   medusa_network:
     driver: bridge
+  coolify:
+    external: true
