@@ -1,29 +1,31 @@
-FROM node:20-alpine
+ # backend/Dockerfile
+  FROM node:20-alpine
 
-# Enable Yarn via Corepack
-RUN corepack enable
+  # Required shared libs when running on Alpine (musl)
+  RUN apk add --no-cache python3 make g++ libc6-compat
 
-# Create workdir
-WORKDIR /app
+  # Ensure Yarn 4 is available
+  RUN corepack enable
 
-# Install dependencies only when needed
-COPY package.json yarn.lock ./
-RUN yarn install --immutable
+  WORKDIR /app
+  ENV NODE_ENV=production
 
-# Copy rest of project
-COPY . .
+  # Install the dependencies that are already in the lockfile
+  COPY package.json yarn.lock ./
+  RUN yarn install --immutable
 
-# Build TypeScript → JavaScript
-RUN yarn build
+  # Add the musl build of SWC so ts-node / Medusa CLI can load it on Alpine
+  RUN yarn add -D @swc/core-linux-x64-musl
 
-# Point Medusa at the compiled config
-ENV MEDUSA_CONFIG_FILE=./dist/medusa-config.js
+  # Bring in the rest of the backend source
+  COPY . .
 
-# Runtime environment
-ENV NODE_ENV=production
-ENV PORT=9000
+  # Build the backend (TS → JS)
+  RUN yarn build
 
-EXPOSE 9000
+  # Point Medusa at the compiled config and expose the default port
+  ENV MEDUSA_CONFIG_FILE=./dist/medusa-config.js
+  ENV PORT=9000
+  EXPOSE 9000
 
-# Start Medusa
-CMD ["yarn", "start"]
+  CMD ["yarn", "start"]
