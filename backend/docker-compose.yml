@@ -42,12 +42,12 @@ services:
     environment:
       NODE_ENV: development
       # Disable SSL for local Postgres (pick ONE of the two lines below)
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/medusa-store?sslmode=disable
       PGSSLMODE: disable
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/medusa-store
+      REDIS_URL: redis://redis:6379/0
       # (Alternative) DATABASE_URL: postgres://postgres:postgres@postgres:5432/medusa-store?sslmode=disable
 
       # Redis
-      REDIS_URL: redis://redis:6379/0
 
       # Expose an admin backend URL for admin UI (used by medusa-config.ts)
       MEDUSA_ADMIN_BACKEND_URL: https://admin.teherguminet.hu
