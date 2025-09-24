@@ -20,7 +20,7 @@ module.exports = defineConfig({
       // Bind inside container; let Traefik terminate TLS
       config.server = {
         ...(config.server ?? {}),
-        host: true, // 0.0.0.0
+        host: "0.0.0.0",
         // DO NOT set `origin` (it can make Vite bind to that address)
         hmr: {
           protocol: "wss",
