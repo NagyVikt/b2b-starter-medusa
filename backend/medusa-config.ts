@@ -12,9 +12,16 @@ module.exports = defineConfig({
       ...config,
       server: {
         ...(config.server ?? {}),
-        allowedHosts: Array.isArray(config.server?.allowedHosts)
-          ? [...config.server.allowedHosts, "admin.teherguminet.hu"]
-          : ["admin.teherguminet.hu"],
+        allowedHosts:
+          config.server?.allowedHosts === true
+            ? true
+            : Array.from(
+                new Set(
+                  Array.isArray(config.server?.allowedHosts)
+                    ? [...config.server.allowedHosts, "admin.teherguminet.hu"]
+                    : ["admin.teherguminet.hu"]
+                )
+              ),
       },
     }),
   },
