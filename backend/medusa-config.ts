@@ -8,15 +8,11 @@ loadEnv(process.env.NODE_ENV!, process.cwd());
 module.exports = defineConfig({
   admin: {
     path: "/app",
-    // Extend Vite config so it accepts admin.teherguminet.hu
-    vite: (config) => ({
-      ...config,
+    vite: {
       server: {
-        ...config.server,
         allowedHosts: ["admin.teherguminet.hu"],
-        host: true, // let Vite bind to all interfaces
       },
-    }),
+    },
   },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,

@@ -39,13 +39,17 @@ services:
       # Medusa backend service (port 9000 inside container)
       - "traefik.http.services.medusa.loadbalancer.server.port=9000"
 
-      # Route Medusa backend to admin.teherguminet.hu
+      # Router for admin.teherguminet.hu
       - "traefik.http.routers.medusa-https.rule=Host(`admin.teherguminet.hu`)"
       - "traefik.http.routers.medusa-https.entrypoints=https"
       - "traefik.http.routers.medusa-https.tls=true"
       - "traefik.http.routers.medusa-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.medusa-https.service=medusa"
       - "traefik.http.routers.medusa-https.priority=10"
+
+      # Middleware: strip /app
+      - "traefik.http.middlewares.strip-app.stripprefix.prefixes=/app"
+      - "traefik.http.routers.medusa-https.middlewares=strip-app"
 
 volumes:
   postgres_data:
