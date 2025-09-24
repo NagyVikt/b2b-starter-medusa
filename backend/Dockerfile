@@ -4,13 +4,16 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /server
 
-# Copy package files and yarn config
+# Enable corepack and prepare Yarn 4.4.0
+RUN corepack enable && corepack prepare yarn@4.4.0 --activate
+
+# Copy package files and yarn config first (for better caching)
 COPY package.json yarn.lock .yarnrc.yml ./
 
 # Install all dependencies using yarn
 RUN yarn install
 
-# Copy source code
+# Copy the rest of the source code
 COPY . .
 
 # Expose the port Medusa runs on
