@@ -1,20 +1,4 @@
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: medusa_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: tehergumiadmin
-      POSTGRES_PASSWORD: rdvl53oxgoGEWXx4AO03npRxBTfPHBpjAlyGrLzWuhGHbPaZYsFnfmPlDN5c0iJC
-      POSTGRES_DB: tehergumi
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - medusa_network
-
   # Redis
   redis:
     image: redis:7-alpine
