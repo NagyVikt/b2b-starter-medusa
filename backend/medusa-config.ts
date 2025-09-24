@@ -6,44 +6,35 @@ import { loadEnv, defineConfig, Modules } from "@medusajs/framework/utils";
 loadEnv(process.env.NODE_ENV!, process.cwd());
 
 module.exports = defineConfig({
-  admin: {
-    path: "/app",
-    vite: (config) => {
-      // Serve under /app and make HMR work through Traefik
-      config.base = "/app/";
-      config.server = {
-        ...(config.server ?? {}),
-        host: true,
-        origin: "https://admin.teherguminet.hu",
-        allowedHosts: ["admin.teherguminet.hu"],
-        hmr: {
+  // ✅ Admin plugin configuration
+  plugins: [
+    {
+      resolve: "@medusajs/admin",
+      /** @type {import('@medusajs/admin').PluginOptions} */
+      options: {
+        // Serve the admin with the backend under /app
+        serve: true,
+        path: "/app",
+
+        // Tell the admin where your backend is (via Traefik)
+        // For production builds, also set MEDUSA_ADMIN_BACKEND_URL to this.
+        backend: "https://admin.teherguminet.hu",
+
+        // Make the dev server line up with your reverse proxy/domain
+        develop: {
           host: "admin.teherguminet.hu",
-          protocol: "wss",
-          clientPort: 443,
-          path: "/app",
+          port: 9000,
+          allowedHosts: "auto",
+          // Force HMR over WSS through your domain, under /app
+          webSocketURL: "wss://admin.teherguminet.hu/app",
+          // Optional niceties:
+          // open: false,
+          // logLevel: "error",
+          // stats: "normal",
         },
-      };
-
-      // 🔧 Dedupe react-refresh / react plugin injections
-      const seen = new Set<string>();
-      config.plugins = (config.plugins ?? []).filter((p: any) => {
-        const name = p?.name ?? "";
-        // Anything that injects refresh code
-        const isRefreshish =
-          /react-refresh|vite:react-babel|vite:react-jsx/.test(name);
-        if (!isRefreshish) return true;
-
-        if (seen.has("react-refresh-family")) {
-          // drop subsequent duplicates
-          return false;
-        }
-        seen.add("react-refresh-family");
-        return true; // keep first occurrence
-      });
-
-      return config; // mutate & return
+      },
     },
-  },
+  ],
 
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
@@ -54,17 +45,21 @@ module.exports = defineConfig({
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
-    databaseDriverOptions: {
-      ssl: false,
-      sslmode: "disable",
-    },
   },
 
   modules: {
-    [COMPANY_MODULE]: { resolve: "./modules/company" },
-    [QUOTE_MODULE]: { resolve: "./modules/quote" },
-    [APPROVAL_MODULE]: { resolve: "./modules/approval" },
-    [Modules.CACHE]: { resolve: "@medusajs/medusa/cache-inmemory" },
+    [COMPANY_MODULE]: {
+      resolve: "./modules/company",
+    },
+    [QUOTE_MODULE]: {
+      resolve: "./modules/quote",
+    },
+    [APPROVAL_MODULE]: {
+      resolve: "./modules/approval",
+    },
+    [Modules.CACHE]: {
+      resolve: "@medusajs/medusa/cache-inmemory",
+    },
     [Modules.WORKFLOW_ENGINE]: {
       resolve: "@medusajs/medusa/workflow-engine-inmemory",
     },
