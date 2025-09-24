@@ -1,24 +1,25 @@
 FROM node:20-alpine
 
-# Create app directory
+# Enable corepack (ships with Node >=16.9)
+RUN corepack enable
+
 WORKDIR /app
 
-# Install dependencies
+# Copy manifests first for caching
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+
+# Install deps with Yarn 4
+RUN yarn install --immutable
 
 # Copy rest of the code
 COPY . .
 
-# Build (if your Medusa project has a build step)
+# Build (if you have a build step)
 RUN yarn build || true
 
-# Env vars
 ENV NODE_ENV=production
 ENV PORT=9000
 
-# Expose Medusa port
 EXPOSE 9000
 
-# Start the backend
 CMD ["yarn", "start"]
